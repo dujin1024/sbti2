@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SBTI 沙雕人格测试</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+body{background:#f0f2f5;padding:20px;max-width:600px;margin:0 auto;color:#333}
+.container{background:#fff;border-radius:20px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+.title{text-align:center;font-size:24px;margin-bottom:8px;font-weight:700}
+.subtitle{text-align:center;color:#888;margin-bottom:30px}
+.question{font-size:17px;margin:20px 0 12px;font-weight:500}
+.option{background:#f7f8fa;border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;border:2px solid transparent}
+.option:hover{background:#eef2ff}
+.option.active{background:#dbeafe;border-color:#3b82f6}
+.btn{width:100%;background:#3b82f6;color:#fff;border:none;border-radius:14px;padding:18px;font-size:17px;margin-top:24px;cursor:pointer;font-weight:600}
+.btn:active{background:#2563eb}
+.result-page{display:none}
+.result-box{text-align:center;padding:20px 0}
+.result-score{font-size:22px;margin:12px 0;color:#3b82f6;font-weight:600}
+.result-desc{font-size:16px;line-height:1.7;color:#444;margin-top:10px;white-space:pre-line}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="test-page">
+    <div class="title">SBTI 沙雕人格测试</div>
+    <div class="subtitle">当代年轻人精神状态鉴定器</div>
+    <div id="questions"></div>
+    <button class="btn" id="submit">查看结果</button>
+  </div>
+
+  <div class="result-page">
+    <div class="title">你的测试结果</div>
+    <div class="result-box">
+      <div class="result-score" id="score"></div>
+      <div class="result-desc" id="resultText"></div>
+    </div>
+    <button class="btn" onclick="location.reload()">重新测试</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {q:"朋友临时约你出门，你第一反应是？",o:["立刻答应，兴奋收拾","犹豫半天，最后还是去了","假装没看见，继续躺平"]},
+  {q:"群里有人@全体成员，你会？",o:["马上接话，活跃气氛","看一眼，偶尔回一句","直接划走，假装不在"]},
+  {q:"上班/上课摸鱼时，你更像？",o:["表面认真，内心疯狂开小差","偶尔摸，大部分时间还算老实","光明正大摸，谁爱卷谁卷"]},
+  {q:"别人夸你时，你的内心 OS 是？",o:["嘿嘿我就是这么厉害","谢谢，但其实一般","别骂了别骂了，我知道我不行"]},
+  {q:"遇到烦心事，你通常？",o:["找人疯狂吐槽，说个痛快","自己消化一会儿就好","直接摆烂，爱咋咋地"]},
+  {q:"出门前你要打扮多久？",o:["精致打扮，半小时起步","随便弄弄，5分钟搞定","能出门就行，根本不打扮"]},
+  {q:"别人对你指指点点，你会？",o:["当场反驳，据理力争","心里不爽，但懒得吵","关你屁事，左耳进右耳出"]},
+  {q:"深夜睡不着，你在干嘛？",o:["刷手机越刷越精神","胡思乱想，内耗到天亮","闭眼硬睡，睡不着也不动"]},
+  {q:"计划好的事突然泡汤，你？",o:["心态爆炸，非常生气","有点失落，但很快接受","无所谓，本来也没多期待"]},
+  {q:"面对陌生人，你更像？",o:["社牛附体，主动搭话","礼貌客气，保持距离","社恐发作，能躲就躲"]},
+  {q:"你对自己的评价是？",o:["我超棒，全世界我最可爱","普通正常人，优缺点都有","没救了，这辈子就这样吧"]},
+  {q:"朋友借钱不还，你会？",o:["直接开口要，毫不客气","旁敲侧击，暗示对方","算了算了，就当丢了"]},
+  {q:"吃饭选择困难时，你？",o:["随便点，吃到啥算啥","纠结半天，最后还是老样子","让别人选，我都行"]},
+  {q:"被放鸽子了，你的反应？",o:["再也不理这个人","有点生气，但下次还约","习惯了，我也经常鸽别人"]},
+  {q:"此题无题目，请盲选",o:["A","B","C"]}
+];
+
+const scores = [];
+const dom = document.getElementById('questions');
+
+questions.forEach((item, idx) => {
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.innerHTML = `
+    <div class="question">${idx+1}. ${item.q}</div>
+    <div class="opts">
+      <div class="option" data-s="3">A. ${item.o[0]}</div>
+      <div class="option" data-s="2">B. ${item.o[1]}</div>
+      <div class="option" data-s="1">C. ${item.o[2]}</div>
+    </div>
+  `;
+  dom.appendChild(div);
+});
+
+document.querySelectorAll('.option').forEach(opt => {
+  opt.onclick = function(){
+    const p = this.parentElement;
+    p.querySelectorAll('.option').forEach(o => o.classList.remove('active'));
+    this.classList.add('active');
+    const qidx = Array.from(dom.children).indexOf(this.closest('.item'));
+    scores[qidx] = +this.dataset.s;
+  }
+});
+
+document.getElementById('submit').onclick = function(){
+  const total = scores.reduce((a,b)=>a+(b||0),0);
+  if(scores.filter(Boolean).length < 15) return alert('请完成所有题目哦～');
+  
+  let text = '';
+  if(total >= 39) text = '【人间尤物 / 社交王者】\n你精神状态极佳，自信开朗，社交拉满，走到哪都是焦点。';
+  else if(total >= 29) text = '【正常人类 / 情绪稳定选手】\n你是社会运转的中流砥柱，不疯不卷，情绪平稳，偶尔摆烂。';
+  else if(total >= 18) text = '【装死者 / 佛系摆烂大师】\n能不动就不动，能不说话就不说话，主打一个与世无争。';
+  else text = '【抽象大神 / 终极摆烂人】\n已经彻底与世界和解，精神状态领先人类十年。';
+  
+  document.querySelector('.test-page').style.display = 'none';
+  document.querySelector('.result-page').style.display = 'block';
+  document.getElementById('score').innerText = `总分：${total}`;
+  document.getElementById('resultText').innerText = text;
+}
+</script>
+</body>
+</html>
